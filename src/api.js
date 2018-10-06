@@ -41,6 +41,8 @@ api.post(
     }
   }),
   (req, res) => {
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
     const { id, thresholdPrice, command, description } = req.body
     const startTimestamp = getTimestamp()
 
@@ -82,6 +84,8 @@ api.post(
     }
   }),
   (req, res) => {
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
     const { price } = req.body
 
     addMockSpotInstancePrice(price)
@@ -93,6 +97,8 @@ api.post(
 )
 
 api.post('/prices/clear', (req, res) => {
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Access-Control-Allow-Origin', '*');
   clearMockedSpotInstancePrices()
 
   res.json({
@@ -122,6 +128,8 @@ api.post(
     }
   }),
   (req, res) => {
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
     const { epoch, training, validation } = req.body
     const { jobId } = req.params
 
@@ -153,6 +161,8 @@ api.post(
     }
   }),
   (req, res) => {
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
     const job = getJob(req.params.jobId)
 
     setJobState(job.id, STATE.IN_PROGRESS)
@@ -174,6 +184,8 @@ api.post(
     }
   }),
   async (req, res) => {
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
     let job = getJob(req.params.jobId)
 
     setJobState(job.id, STATE.HALTED)
@@ -194,6 +206,8 @@ api.post(
     }
   }),
   async (req, res) => {
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
     let job = getJob(req.params.jobId)
 
     setJobState(job.id, STATE.DONE)
@@ -216,6 +230,8 @@ api.get(
     }
   }),
   (req, res) => {
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
     const job = getJob(req.params.jobId)
 
     if (job.thresholdPrice <= getCurrentSpotPrice()) {
@@ -233,6 +249,8 @@ api.get(
 
 /** Fetch the set of pending jobs to start. */
 api.post('/jobs/pending', (req, res) => {
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Access-Control-Allow-Origin', '*');
   const { jobs } = getState()
   const startableJobs = jobs.filter(
     j => j.state === STATE.PENDING || j.state === STATE.HALTED
