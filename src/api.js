@@ -19,7 +19,9 @@ let api = expressPromiseRouter()
 
 /** Get the full application state. */
 api.get('/state', (req, res) => {
+  res.set('Access-Control-Allow-Headers', 'application/json');
   res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Access-Control-Allow-Origin', '*');
   res.json({
     state: getState(),
     spotPriceHistory: getSpotInstancePriceHistory(),
