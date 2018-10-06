@@ -6,7 +6,6 @@ import { getTimestamp } from './db'
 // All GPU instance types on AWS. These prices are for Linux on us-east-1.
 // See: https://aws.amazon.com/ec2/pricing/on-demand/
 import instanceTypes from '../data/instances.json'
-import { getTime } from 'date-fns';
 
 // All currently supported GPU instance types on AWS
 export const supportedInstanceType = "p2.xlarge"
@@ -36,7 +35,7 @@ export async function loadSpotPriceHistory() {
     ProductDescriptions: [
       'Linux/UNIX'
     ],
-    StartTime: getTimestamp(moment().add(-10, 'days')),
+    StartTime: getTimestamp(moment().add(-7, 'days')),
     EndTime: getTimestamp()
   }).promise()
 
@@ -73,7 +72,7 @@ export function clearMockedSpotInstancePrices() {
 
 export async function startInstance(job) {
   // Verify that we will be able to store a GPU instance at this price point.
-  if (job.thresholdPrice <= await getCurrentSpotPrice()) return;
+  if (job.thresholdPrice <= getCurrentSpotPrice()) return;
 
   // TODO: Start GPU instance
   console.log(`TODO: starting instance for job: ${job.id}`)

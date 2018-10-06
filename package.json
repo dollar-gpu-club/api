@@ -9,8 +9,8 @@
   "scripts": {
     "start": "node dist",
     "prestart": "npm run build",
-    "lint": "eslint src test; exit 0",
-    "lint:fix": "eslint src test --fix; exit 0",
+    "lint": "eslint src; exit 0",
+    "lint:fix": "eslint src --fix; exit 0",
     "build": "rimraf dist && babel src -D --out-dir dist",
     "format:md": "prettier --parser markdown --write '*.md'",
     "format:yml": "prettier --parser yaml --single-quote --write '*.{yml,yaml}'",
@@ -24,8 +24,9 @@
       "node": true
     },
     "extends": [
+      "standard",
       "prettier",
-      "eslint:recommended"
+      "prettier/standard"
     ],
     "parserOptions": {
       "ecmaVersion": 2017,
@@ -33,20 +34,7 @@
     },
     "plugins": [
       "prettier"
-    ],
-    "rules": {
-      "no-console": [
-        "error",
-        {
-          "allow": [
-            "error"
-          ]
-        }
-      ],
-      "no-debugger": [
-        "error"
-      ]
-    }
+    ]
   },
   "prettier": {
     "semi": false,
@@ -78,7 +66,12 @@
   "devDependencies": {
     "eslint": "^5.6.1",
     "eslint-config-prettier": "^3.1.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-prettier": "^2.7.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
     "husky": "^1.0.1",
     "lint-staged": "^7.3.0",
     "nodemon": "^1.18.4",
