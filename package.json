@@ -15,7 +15,7 @@
     "format:md": "prettier --parser markdown --write '*.md'",
     "format:yml": "prettier --parser yaml --single-quote --write '*.{yml,yaml}'",
     "format:code": "prettier --single-quote --print-width 120 --write 'src/**/*.js' 'test/**/*.js'",
-    "start:dev": "nodemon --watch .env --watch src --exec babel-node src --source-maps",
+    "start:dev": "nodemon --watch .env --watch src --watch data --exec babel-node src --source-maps",
     "logs": "heroku logs -a dollar-gpu-club-api --tail"
   },
   "eslintConfig": {
