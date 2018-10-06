@@ -1,32 +1,34 @@
-import { find } from 'lodash';
-import moment from 'moment';
+import { find } from 'lodash'
+import moment from 'moment'
 
-import bootstrapData from '../data/init.json';
+import bootstrapData from '../data/init.json'
 
-const data = bootstrapData;
+const data = bootstrapData
 
 export const STATE = Object.freeze({
-	PENDING: 'PENDING',
-	IN_PROGRESS: 'IN_PROGRESS',
-	HALTED: 'HALTED',
-	DONE: 'DONE'
-});
+  PENDING: 'PENDING',
+  // BOOTING: 'BOOTING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  HALTED: 'HALTED',
+  DONE: 'DONE',
+  CANCELED: 'CANCELED'
+})
 
 export function getJob(id) {
-	return find(data.jobs, j => j.id === id);
+  return find(data.jobs, j => j.id === id)
 }
 
 export function setJobState(id, newState) {
-	const job = getJob(id)
-	job.state = newState
-	job.stateHistory.push({
-		state: newState,
-		ts: getTimestamp()
-	})
+  const job = getJob(id)
+  job.state = newState
+  job.stateHistory.push({
+    state: newState,
+    ts: getTimestamp()
+  })
 }
 
 export function getTimestamp(ts) {
-	return (ts ? moment(ts) : moment()).toISOString();
+  return (ts ? moment(ts) : moment()).toISOString()
 }
 
 export function getState() {

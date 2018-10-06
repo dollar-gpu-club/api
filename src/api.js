@@ -11,7 +11,8 @@ import {
   clearMockedSpotInstancePrices,
   supportedInstanceType,
   supportedAvailabilityZone,
-  supportedRegion
+  supportedRegion,
+  getCurrentSpotPrice
 } from './aws'
 
 let api = expressPromiseRouter()
@@ -33,18 +34,16 @@ api.post(
       id: Joi.string(),
       command: Joi.string().required(),
       thresholdPrice: Joi.number().required(),
-      code: Joi.string().required(),
       description: Joi.string()
     }
   }),
   (req, res) => {
-    const { id, thresholdPrice, command, code, description } = req.body
+    const { id, thresholdPrice, command, description } = req.body
     const startTimestamp = getTimestamp()
 
     const job = {
       id: id || uuid(),
       state: STATE.PENDING,
-      code,
       command,
       description,
       thresholdPrice,
@@ -163,7 +162,7 @@ api.post(
   }
 )
 
-/** Halt a given Job. */
+/** Mark a given Job as halted. */
 api.post(
   '/:jobId/halt',
   celebrate({
@@ -174,8 +173,6 @@ api.post(
   async (req, res) => {
     let job = getJob(req.params.jobId)
 
-    await stopInstance(job.id)
-
     setJobState(job.id, STATE.HALTED)
 
     res.json({
@@ -184,6 +181,66 @@ api.post(
     })
   }
 )
+
+/** Mark a given Job as done. */
+api.post(
+  '/:jobId/finish',
+  celebrate({
+    params: {
+      jobId: Joi.string().required()
+    }
+  }),
+  async (req, res) => {
+    let job = getJob(req.params.jobId)
+
+    setJobState(job.id, STATE.DONE)
+
+    await stopInstance(job.id)
+
+    res.json({
+      job,
+      msg: `Successfully finished job: ${job.id}`
+    })
+  }
+)
+
+/** Fetch the SYSKILL status of a given Job. */
+api.get(
+  '/:jobId/mock-aws',
+  celebrate({
+    params: {
+      jobId: Joi.string().required()
+    }
+  }),
+  (req, res) => {
+    const job = getJob(req.params.jobId)
+
+    if (job.thresholdPrice <= getCurrentSpotPrice()) {
+      console.log(
+        `Threshold price for job ${
+          job.id
+        } not high enough (must be > ${getCurrentSpotPrice()})`
+      )
+      res.sendStatus(400)
+    } else {
+      res.sendStatus(200)
+    }
+  }
+)
+
+/** Fetch the set of pending jobs to start. */
+api.post('/jobs/pending', (req, res) => {
+  const { jobs } = getState()
+  const startableJobs = jobs.filter(
+    j => j.state === STATE.PENDING || j.state === STATE.HALTED
+  )
+
+  startableJobs.map(job => {
+    setJobState(job.id, STATE.IN_PROGRESS)
+  })
+
+  res.json(startableJobs)
+})
 
 api.use(errors)
 
