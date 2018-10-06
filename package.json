@@ -91,6 +91,7 @@
     "@babel/node": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
     "@babel/register": "^7.0.0",
+    "aws-sdk": "^2.329.0",
     "body-parser": "^1.18.3",
     "celebrate": "^8.0.2",
     "express": "^4.16.3",

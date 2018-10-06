@@ -2,14 +2,24 @@ import expressPromiseRouter from 'express-promise-router';
 import { celebrate, Joi, errors } from 'celebrate';
 import uuid from 'uuid/v4';
 
-import { STATE, getJob, setJobState, getTimestamp, getState } from './db'
-import { stopInstance, getCurrentOnDemandPrice } from './aws';
+import { STATE, getJob, setJobState, getTimestamp, getState } from './db';
+import {
+	stopInstance,
+	getOnDemandPrice,
+	getSpotInstancePriceHistory,
+	addMockSpotInstancePrice,
+	clearMockedSpotInstancePrices
+} from './aws';
 
 let api = expressPromiseRouter();
 
 /** Get the full application state. */
 api.get('/state', (req, res) => {
-	res.json(getState());
+	res.json({
+		state: getState(),
+		spotPriceHistory: getSpotInstancePriceHistory(),
+		onDemandPrice: getOnDemandPrice()
+	});
 });
 
 /** Post a new Job. */
@@ -35,7 +45,7 @@ api.post(
 			command,
 			description,
 			thresholdPrice,
-			onDemandPrice: getCurrentOnDemandPrice(),
+			onDemandPrice: getOnDemandPrice(),
 			startTimestamp,
 			training: [],
 			validation: [],
@@ -50,9 +60,9 @@ api.post(
 		getState().jobs.push(job);
 
 		res.json({
-      job,
-      msg: `Successfully added job: ${job.id}`
-    })
+			job,
+			msg: `Successfully added job: ${job.id}`
+		});
 	}
 );
 
@@ -65,18 +75,23 @@ api.post(
 		}
 	}),
 	(req, res) => {
-    const { price } = req.body
+		const { price } = req.body;
 
-    getState().priceHistory.push({
-      price,
-      ts: getTimestamp()
-    })
+		addMockSpotInstancePrice(price);
 
 		res.json({
-      msg: `Successfully added price: ${price}`
-    });
+			msg: `Successfully added price: ${price}`
+		});
 	}
 );
+
+api.post('/prices/clear', (req, res) => {
+	clearMockedSpotInstancePrices();
+
+	res.json({
+		msg: 'Successfully cleared mock price history.'
+	});
+});
 
 /** Post a new set of metrics for a given Job. */
 api.post(
@@ -92,16 +107,16 @@ api.post(
 				accuracy: Joi.number().required(),
 				loss: Joi.number().required()
 			}
-    },
-    params: {
-      jobId: Joi.string().required()
-    }
+		},
+		params: {
+			jobId: Joi.string().required()
+		}
 	}),
 	(req, res) => {
-    const { epoch, training, validation } = req.body;
-    const { jobId } = req.params
-    
-    const job = getJob(jobId)
+		const { epoch, training, validation } = req.body;
+		const { jobId } = req.params;
+
+		const job = getJob(jobId);
 
 		job.epoch = epoch;
 		job.training.push(training);
@@ -110,8 +125,8 @@ api.post(
 		}
 
 		res.json({
-      msg: `Successfully added metric for epoch: ${epoch}`
-    });
+			msg: `Successfully added metric for epoch: ${epoch}`
+		});
 	}
 );
 
@@ -129,13 +144,13 @@ api.post(
 	(req, res) => {
 		const job = getJob(req.params.jobId);
 
-		setJobState(job.id, STATE.IN_PROGRESS)
+		setJobState(job.id, STATE.IN_PROGRESS);
 		job.numEpochs = req.body.numEpochs;
 
 		res.json({
-      job,
-      msg: `Successfully started job: ${job.id}`
-    })
+			job,
+			msg: `Successfully started job: ${job.id}`
+		});
 	}
 );
 
@@ -152,12 +167,12 @@ api.post(
 
 		await stopInstance(job.id);
 
-		setJobState(job.id, STATE.HALTED)
+		setJobState(job.id, STATE.HALTED);
 
 		res.json({
-      job,
-      msg: `Successfully halted job: ${job.id}`
-    })
+			job,
+			msg: `Successfully halted job: ${job.id}`
+		});
 	}
 );
 

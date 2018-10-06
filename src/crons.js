@@ -1,14 +1,17 @@
 import cron from 'node-cron'
-import { find } from 'lodash'
 
 import { STATE, getState } from './db'
-import { startInstance, haltedInstances } from './aws'
+import { startInstance, loadSpotPriceHistory } from './aws'
 
-function schedule({ name, freq, fn }) {
-  cron.schedule(freq, () => {
+function schedule({ name, freq, fn, runImmediately = false }) {
+  const execWrapper = () => {
     console.log(`Executing task: ${name} (${freq})`);
     fn()
-  });
+  }
+  
+  cron.schedule(freq, execWrapper)
+  
+  if (runImmediately) execWrapper()
 }
 
 const crons = () => {
@@ -18,7 +21,15 @@ const crons = () => {
   schedule({
     name: 'Poll Jobs',
     freq: '*/10 * * * * *',
-    fn: pollJobs
+    fn: pollJobs,
+    runImmediately: true
+  })
+
+  schedule({
+    name: 'Load Spot Price History',
+    freq: '0 * * * * *',
+    fn: loadSpotPriceHistory,
+    runImmediately: true
   })
 }
 

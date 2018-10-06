@@ -25,8 +25,8 @@ export function setJobState(id, newState) {
 	})
 }
 
-export function getTimestamp() {
-	return moment();
+export function getTimestamp(ts) {
+	return (ts ? moment(ts) : moment()).toISOString();
 }
 
 export function getState() {
