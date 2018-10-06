@@ -1,43 +1,15 @@
 import expressPromiseRouter from 'express-promise-router';
 import { celebrate, Joi, errors } from 'celebrate';
-import { find } from 'lodash';
-import moment from 'moment';
 import uuid from 'uuid/v4';
 
-import bootstrapData from '../data/init.json';
-import { stopInstance, ON_DEMAND_PRICE } from './aws';
+import { STATE, getJob, setJobState, getTimestamp, getState } from './db'
+import { stopInstance, getCurrentOnDemandPrice } from './aws';
 
 let api = expressPromiseRouter();
 
-const data = bootstrapData;
-
-const STATE = Object.freeze({
-	PENDING: 'PENDING',
-	IN_PROGRESS: 'IN_PROGRESS',
-	HALTED: 'HALTED',
-	DONE: 'DONE'
-});
-
-function getJob(id) {
-	return find(data.jobs, j => j.id === id);
-}
-
-function setJobState(id, newState) {
-	const job = getJob(id)
-	job.state = newState
-	job.stateHistory.push({
-		state: newState,
-		ts: getTimestamp()
-	})
-}
-
-function getTimestamp() {
-	return moment();
-}
-
 /** Get the full application state. */
 api.get('/state', (req, res) => {
-	res.json(data);
+	res.json(getState());
 });
 
 /** Post a new Job. */
@@ -63,7 +35,7 @@ api.post(
 			command,
 			description,
 			thresholdPrice,
-			onDemandPrice: ON_DEMAND_PRICE,
+			onDemandPrice: getCurrentOnDemandPrice(),
 			startTimestamp,
 			training: [],
 			validation: [],
@@ -75,7 +47,7 @@ api.post(
 			]
 		};
 
-		data.jobs.push(job);
+		getState().jobs.push(job);
 
 		res.json({
       job,
@@ -95,7 +67,7 @@ api.post(
 	(req, res) => {
     const { price } = req.body
 
-    data.priceHistory.push({
+    getState().priceHistory.push({
       price,
       ts: getTimestamp()
     })
@@ -105,12 +77,6 @@ api.post(
     });
 	}
 );
-
-/** Polling function to orchestrate Jobs. */
-api.post('/pollJobs', async () => {
-  // TODO!
-  // TODO: configure this function to execute every X seconds
-})
 
 /** Post a new set of metrics for a given Job. */
 api.post(
