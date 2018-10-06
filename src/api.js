@@ -4,7 +4,6 @@ import uuid from 'uuid/v4'
 
 import { STATE, getJob, setJobState, getTimestamp, getState } from './db'
 import {
-  stopInstance,
   getOnDemandPrice,
   getSpotInstancePriceHistory,
   addMockSpotInstancePrice,
@@ -194,8 +193,6 @@ api.post(
     let job = getJob(req.params.jobId)
 
     setJobState(job.id, STATE.DONE)
-
-    await stopInstance(job.id)
 
     res.json({
       job,
